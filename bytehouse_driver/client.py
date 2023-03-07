@@ -227,7 +227,10 @@ class Client(object):
         if self.is_warehouse_up(default_warehouse):
             return
         logger.info("Resuming warehouse %s", default_warehouse)
-        self.execute("RESUME WAREHOUSE {}".format(default_warehouse))
+        try:
+            self.execute("RESUME WAREHOUSE {}".format(default_warehouse))
+        except:
+            logger.warn("Error from server while resuming warehouse", default_warehouse)
 
         start_time = time()
         warehouse_started = False
