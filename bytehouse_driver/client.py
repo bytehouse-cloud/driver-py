@@ -220,16 +220,31 @@ class Client(object):
 
     def set_default_warehouse(self):
         default_settings = self.execute("SHOW DEFAULT SETTINGS")
-        warehouse = default_settings[0][4]
-        if warehouse is None or len(warehouse) < 1:
+        default_warehouse = default_settings[0][4]
+        if default_warehouse is None or len(default_warehouse) < 1:
             raise Exception("No default virtual warehouse selected")
-        try:
-            self.execute("RESUME WAREHOUSE {}".format(warehouse))
-        except:
-            # Ignoring the error for now
-            logger.info("Turning on virtual warehouse")
-        # TODO: Find better solution rather than sleep
-        sleep(5)
+
+        if self.is_warehouse_up(default_warehouse):
+            return
+        logger.info("Resuming warehouse %s", default_warehouse)
+        self.execute("RESUME WAREHOUSE {}".format(default_warehouse))
+
+        start_time = time()
+        warehouse_started = False
+        while (time() - start_time) < 10:
+            if self.is_warehouse_up(default_warehouse):
+                warehouse_started = True
+                break
+        if not warehouse_started:
+            logger.info("Cannot turn on warehhouse")
+
+    def is_warehouse_up(self, warehouse_name):
+        logger.info("Checking warehouse status %s", warehouse_name)
+        warehouses = self.execute("SHOW WAREHOUSES")
+        for warehouse in warehouses:
+            if warehouse[1] == warehouse_name and warehouse[6] == "up":
+                return True
+        return False
 
     def receive_result(self, with_column_types=False, progress=False,
                        columnar=False):
