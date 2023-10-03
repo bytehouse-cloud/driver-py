@@ -162,6 +162,7 @@ class Client(object):
             self.iter_query_result_cls = IterQueryResult
             self.progress_query_result_cls = ProgressQueryResult
 
+        vw = kwargs.pop('vw', '')
         round_robin = kwargs.pop('round_robin', False)
         self.connections = deque([Connection(*args, **kwargs)])
 
@@ -184,7 +185,7 @@ class Client(object):
 
         self.connection = self.get_connection()
         self.reset_last_query()
-        self.set_default_warehouse()
+        self.set_warehouse(vw)
         super(Client, self).__init__()
 
     def __enter__(self):
@@ -218,28 +219,36 @@ class Client(object):
     def reset_last_query(self):
         self.last_query = None
 
-    def set_default_warehouse(self):
-        default_settings = self.execute("SHOW DEFAULT SETTINGS")
-        default_warehouse = default_settings[0][4]
-        if default_warehouse is None or len(default_warehouse) < 1:
-            raise Exception("No default virtual warehouse selected")
+    def set_warehouse(self, vw):
+        if vw == "":
+            default_settings = self.execute("SHOW DEFAULT SETTINGS")
+            vw = default_settings[0][4]
+            if vw is None or len(vw) < 1:
+                raise Exception("No default virtual warehouse selected")
+        else:
+            try:
+                self.execute("SET WAREHOUSE {}".format(vw))
+            except Exception as e:
+                logger.warn("Failed to resume warehouse {}".format(vw))
+                raise e
 
-        if self.is_warehouse_up(default_warehouse):
+        if self.is_warehouse_up(vw):
             return
-        logger.info("Resuming warehouse %s", default_warehouse)
+        logger.info("Resuming warehouse %s", vw)
         try:
-            self.execute("RESUME WAREHOUSE {}".format(default_warehouse))
+            self.execute("RESUME WAREHOUSE {}".format(vw))
         except:
-            logger.warn("Error from server while resuming warehouse", default_warehouse)
+            logger.warn("Error from server while resuming warehouse", vw)
 
         start_time = time()
         warehouse_started = False
+        # allowing 10 seconds to resume the vw
         while (time() - start_time) < 10:
-            if self.is_warehouse_up(default_warehouse):
+            if self.is_warehouse_up(vw):
                 warehouse_started = True
                 break
         if not warehouse_started:
-            logger.info("Cannot turn on warehhouse")
+            logger.info("Cannot turn on warehouse")
 
     def is_warehouse_up(self, warehouse_name):
         logger.info("Checking warehouse status %s", warehouse_name)
