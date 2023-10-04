@@ -162,7 +162,7 @@ class Client(object):
             self.iter_query_result_cls = IterQueryResult
             self.progress_query_result_cls = ProgressQueryResult
 
-        vw = kwargs.pop('vw', '')
+        vw = kwargs.pop('vw', None)
         round_robin = kwargs.pop('round_robin', False)
         self.connections = deque([Connection(*args, **kwargs)])
 
@@ -220,12 +220,14 @@ class Client(object):
         self.last_query = None
 
     def set_warehouse(self, vw):
-        if vw == "":
+        if vw == None:
             default_settings = self.execute("SHOW DEFAULT SETTINGS")
             vw = default_settings[0][4]
             if vw is None or len(vw) < 1:
                 raise Exception("No default virtual warehouse selected")
         else:
+            if type(vw) != str:
+                raise Exception("Name of virtual warehouse should be a string")
             try:
                 self.execute("SET WAREHOUSE {}".format(vw))
             except Exception as e:
