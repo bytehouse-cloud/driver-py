@@ -81,6 +81,10 @@ class Column(object):
 
         if (not (self.nullable or null_as_default) and not check_item_type and
                 not check_item and not self.before_write_items):
+            # convert all the None value to null_value by default
+            for i, x in enumerate(items):
+                if x is None:
+                    items[i] = null_value
             return items
 
         nulls_map = [False] * len(items) if self.nullable else None
