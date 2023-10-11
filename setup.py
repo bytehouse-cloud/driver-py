@@ -100,8 +100,8 @@ setup(
 
     url=github_url,
 
-    author='Rafsan Mazumder',
-    author_email='rafsan.mazumder@bytedance.com',
+    author='Sayan Dutta Chowdhury',
+    author_email='sayan.chowdhury@bytedance.com',
 
     license='MIT',
 
