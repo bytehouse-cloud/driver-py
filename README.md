@@ -24,41 +24,18 @@ process mentioned in our official website documentation: https://docs.bytehouse.
 You can also create ByteHouse account through Volcano Engine by ByteDance: 
 https://www.volcengine.com/product/bytehouse-cloud
 
-## ByteHouse Regions
-Currently, the driver supports the following region names across different cloud providers. Alternatively, if you know
-the host address of ByteHouse server, you can directly use host address & omit region name. 
-<table>
-    <tr>
-        <td>Region Name</td>
-        <td>Target Server</td>
-    </tr>
-    <tr>
-        <td>AP-SOUTHEAST-1</td>
-        <td>gateway.aws-ap-southeast-1.bytehouse.cloud:19000</td>
-    </tr>
-    <tr>
-        <td>VOLCANO-CN-NORTH-1</td>
-        <td>bytehouse-cn-beijing.volces.com:19000</td>
-    </tr>
-</table>
+## ByteHouse Gateway Address
+Please refer to /tenant/connection in your ByteHouse account for connectivity information.
+
+e.g. 
+```
+host: gateway.aws-ap-southeast-1.bytehouse.cloud
+port: 19000
+```
+for SG account
 
 ## URI format for Connection & Authentication
-### Region & Password Format
-*Required parameters:* `region` `account` `user` `password`
-```python
-'bytehouse:///?region={}&account={}&user={}&password={}'.format(REGION, ACCOUNT, USER, PASSWORD)
-```
-### Host Address & Password Format
-*Required parameters:* `host` `port` `account` `user` `password`
-```python
-'bytehouse://{}:{}/?account={}&user={}&password={}'.format(HOST, PORT, ACCOUNT, USER, PASSWORD)
-```
-> For API Key authentication, user is always 'bytehouse'
-### Region & API Key Format
-*Required parameters:* `region` `password`
-```python
-'bytehouse:///?region={}&user=bytehouse&password={}'.format(REGION, API_KEY)
-```
+
 ### Host Address & API Key Format
 *Required parameters:* `host` `port` `password`
 ```python
@@ -75,9 +52,9 @@ https://console.bytehouse.cloud/account/details
 from bytehouse_driver import Client
 
 client = Client(
-    region=REGION,
-    account=ACCOUNT,
-    user=USER,
+    host=HOST,
+    port=PORT,
+    user='bytehouse',
     password=PASSWORD
 )
 ```
@@ -85,8 +62,11 @@ client = Client(
 ```python
 from bytehouse_driver import Client
 
-client = Client.from_url('bytehouse:///?region={}&account={}&user={}&password{}'.format(
-     REGION, ACCOUNT, USER, PASSWORD)
+client = Client.from_url('bytehouse://{}:{}/?user=bytehouse&password={}'.format(
+        HOST, 
+        PORT, 
+        PASSWORD
+    )
 )
 ```
 ## Performing SQL queries
@@ -94,9 +74,9 @@ client = Client.from_url('bytehouse:///?region={}&account={}&user={}&password{}'
 from bytehouse_driver import Client
 
 client = Client(
-    region=REGION,
-    account=ACCOUNT,
-    user=USER,
+    host=HOST,
+    port=PORT,
+    user='bytehouse',
     password=PASSWORD
 )
 # DDL Query
@@ -267,9 +247,9 @@ session wrapped by the connection.
 from bytehouse_driver import connect
 
 kwargs = {}
-kwargs.setdefault('region', REGION)
-kwargs.setdefault('account', ACCOUNT)
-kwargs.setdefault('user', USER)
+kwargs.setdefault('host', HOST)
+kwargs.setdefault('port', PORT)
+kwargs.setdefault('user', 'bytehouse')
 kwargs.setdefault('password', PASSWORD)
 
 connection = connect(**kwargs)
@@ -291,10 +271,10 @@ User can manually supply query-id for each query execution. Users are encouraged
 of the query-id string. If not set, then server will assign a randomly generated UUID as the query-id. 
 ```python
 client = Client(
-    region=self.region,
-    account=self.account,
-    user=self.user,
-    password=self.password
+    host=HOST,
+    port=PORT,
+    user='bytehouse',
+    password=PASSWORD
 )
 client.execute("SELECT 1", query_id="ba2e2cea-2a11-4926-a0b8-e694ded0cf65")
 ```
